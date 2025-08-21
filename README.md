@@ -1,7 +1,7 @@
 🤖 AI Fitness Instructor
 A personalized, AI-powered diet and fitness planner built with Streamlit and Google's Gemini API. This interactive web application acts as a virtual fitness coach, generating custom health plans based on user-specific data and goals.
 
-➡️ View Live Demo 👈 (Replace this with your actual Streamlit app link!)
+➡️ View Live Demo 👈 https://aifitnessagent-jcfaomnyg7xcc2xas5m85f.streamlit.app/
 
 (Pro Tip: Take a screenshot or record a short GIF of your app and replace the link above to showcase your project visually.)
 
