@@ -27,8 +27,10 @@ if 'plan_data' not in st.session_state:
 
 
 # --- API Configuration and Call ---
+# Ensure you have your GEMINI_API_KEY in Streamlit's secrets
 GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY", os.environ.get("GEMINI_API_KEY"))
-GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+# Using a stable, recommended model endpoint
+GEMINI_ENDPOINT = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent"
 
 def get_ai_plan(user_info, history=""):
     """Generates a personalized health plan using the Gemini API."""
@@ -55,23 +57,22 @@ def get_ai_plan(user_info, history=""):
     1.  **Diet Plan:** Provide a detailed meal plan with calorie/macro estimates. Include a variety of options for each meal and emphasize principles like hydration and portion control.
     2.  **Gym Plan:** Create a structured weekly workout schedule. For each exercise, include sets, reps, rest times, and a brief, clear description of the proper form.
     3.  **Tone:** Be encouraging, knowledgeable, and motivational.
-    4.  **Format:** Respond with a single JSON object with two keys: "diet_plan" and "gym_plan". The value for each should be a Markdown-formatted string.
+    4.  **Format:** Respond with a single JSON object with two keys: "diet_plan" and "gym_plan". The value for each should be a Markdown-formatted string. Ensure the JSON is perfectly valid and contains no trailing commas.
     """
 
-    payload = {"contents": [{"parts": [{"text": prompt_text}]}]}
+    payload = {
+        "contents": [{"parts": [{"text": prompt_text}]}],
+        "generationConfig": {
+            "responseMimeType": "application/json",
+        }
+    }
     headers = {"Content-Type": "application/json", "x-goog-api-key": GEMINI_API_KEY}
 
     try:
         response = requests.post(GEMINI_ENDPOINT, headers=headers, json=payload, timeout=60)
         response.raise_for_status()
-        response_data = response.json()
-        plan_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
-        
-        if plan_text.strip().startswith("```json"):
-            plan_text = plan_text.strip()[7:-4]
-        
-        plan_text = re.sub(r',\s*([}\]])', r'\1', plan_text)
-        return json.loads(plan_text)
+        # The API is now configured to return JSON directly, simplifying parsing
+        return response.json()
 
     except requests.exceptions.RequestException as e:
         st.error(f"API request failed: {e}")
@@ -131,7 +132,13 @@ def display_progress_tracker():
         col1, col2 = st.columns([1, 2])
         with col1:
             # FIX: Cast the 'value' to a float to match the other numeric types.
-            new_weight = st.number_input("Today's Weight (kg)", min_value=30.0, max_value=200.0, value=float(st.session_state.user_data['weight']), step=0.1)
+            new_weight = st.number_input(
+                "Today's Weight (kg)", 
+                min_value=30.0, 
+                max_value=200.0, 
+                value=float(st.session_state.user_data['weight']), 
+                step=0.1
+            )
         with col2:
             log_date = st.date_input("Date")
         
